@@ -9,7 +9,7 @@ const { LocalFileAdapter } = require('@keystonejs/file-adapters');
 const { atTracking, byTracking } = require('@keystonejs/list-plugins');
 const { Wysiwyg } = require('@keystonejs/fields-wysiwyg-tinymce');
 
-const { staticRoute, staticPath, acceptorUrl, backendUrl, tinyMceBaseUrl, acceptorProxyUrl } = require('./config');
+const { staticRoute, staticPath, backendUrl, tinyMceBaseUrl, host } = require('./config');
 
 const fileAdapter = new LocalFileAdapter({
     // src: `${staticPath}/uploads`,
@@ -101,7 +101,7 @@ const validateInput = async ({ existingItem, originalInput, actions }) => {
 };
 
 function getFilenameFromSrc(src) {
-    return src.replace(`${acceptorProxyUrl}/storage/`, '');
+    return src.replace(`${host}${staticRoute}/`, '');
 }
 
 async function mapContent(release) {
@@ -218,7 +218,7 @@ async function publishRelease(release) {
                 if (content.type === 'image') {
                     console.warn('есть картинка!!!!!!!!');
                     const formData = new FormData();
-                    const filePath = createReadStream(join(__dirname, 'acceptor', 'storage', content.image.filename));
+                    const filePath = createReadStream(join(__dirname, 'uploads', content.image.filename));
                     console.warn(join(__dirname, 'acceptor', 'storage', content.image.filename));
                     filePath.on('error', err => {
                         console.warn(err);
@@ -369,21 +369,16 @@ exports.Article = {
             label: 'Содержимое',
             type: Wysiwyg,
             editorConfig: {
-                // plugins: 'moxiemanager link image',
-                // toolbar: 'insertfile link image',
-                // menubar: false
                 plugins: 'autoresize paste quickbars hr image',
                 block_formats: 'Блок внимания=blockquote',
-                //contextmenu: 'formatselect | selectall | undo redo',
-                //contextmenu_never_use_native: false,
-                quickbars_selection_toolbar: 'blockquote | removeformat',
+                toolbar: 'formatselect | quickimage image editimage imageoptions | selectall | undo redo | preview',
+                quickbars_selection_toolbar: 'blockquote | removeformat | image',
                 statusbar: true,
                 elementpath: true,
                 height: 300,
                 menubar: false,
                 placeholder: 'Напишите что-нибудь интересное...',
-                toolbar: 'formatselect | quickimage image editimage imageoptions | selectall | undo redo | preview',
-                images_upload_url: `${acceptorUrl}/imageUpload.php`,
+                images_upload_url: `${host}/admin/image-upload`,
                 automatic_uploads: true,
                 convert_urls: false,
                 base_url: tinyMceBaseUrl
