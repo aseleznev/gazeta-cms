@@ -11,7 +11,7 @@ const { Release, Article, Tag } = require('./schema');
 //const { MongooseAdapter: Adapter } = require('@keystonejs/adapter-mongoose');
 const { staticRoute, staticPath, dbconnection } = require('./config');
 
-const PROJECT_NAME = `"Новое время"`;
+const PROJECT_NAME = `"Время открытий"`;
 //const adapterConfig = { mongoUri: 'mongodb://localhost/gazeta-cms' };
 const { KnexAdapter } = require('@keystonejs/adapter-knex');
 

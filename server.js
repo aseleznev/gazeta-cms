@@ -1,6 +1,7 @@
 const express = require('express');
 const { staticRoute, staticPath, acceptorUrl, port } = require('./config');
 const { keystone, apps } = require('./index.js');
+const { join } = require('path');
 
 keystone
     .prepare({
@@ -13,7 +14,7 @@ keystone
         const multer = require('multer');
         const storage = multer.diskStorage({
             destination: function(req, file, cb) {
-                cb(null, staticPath);
+                cb(null, join(__dirname, '..', 'gazeta-upload'));
             },
             filename: function(req, file, cb) {
                 cb(null, file.originalname);

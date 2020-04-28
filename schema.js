@@ -12,8 +12,6 @@ const { Wysiwyg } = require('@keystonejs/fields-wysiwyg-tinymce');
 const { staticRoute, staticPath, backendUrl, tinyMceBaseUrl, host } = require('./config');
 
 const fileAdapter = new LocalFileAdapter({
-    // src: `${staticPath}/uploads`,
-    // path: `${staticRoute}/uploads`
     src: `${staticPath}`,
     path: `${staticRoute}`
 });
@@ -182,7 +180,7 @@ async function publishRelease(release) {
         const promises = [];
 
         const formData = new FormData();
-        const readStream = createReadStream(join(__dirname, 'uploads', release.image.filename));
+        const readStream = createReadStream(join(__dirname, '..', 'gazeta-upload', release.image.filename));
         formData.append('file', readStream);
 
         promises.push(
@@ -204,8 +202,8 @@ async function publishRelease(release) {
             console.warn('статья');
             console.warn(article);
             const formData = new FormData();
-            const filePath = createReadStream(join(__dirname, 'uploads', article.image.filename));
-            formData.append('file', filePath);
+            const readStream = createReadStream(join(__dirname, '..', 'gazeta-upload', article.image.filename));
+            formData.append('file', readStream);
             promises.push(
                 fetch(`${backendUrl}/image`, {
                     method: 'POST',
@@ -218,7 +216,7 @@ async function publishRelease(release) {
                 if (content.type === 'image') {
                     console.warn('есть картинка!!!!!!!!');
                     const formData = new FormData();
-                    const filePath = createReadStream(join(__dirname, 'uploads', content.image.filename));
+                    const filePath = createReadStream(join(__dirname, '..', 'gazeta-upload', content.image.filename));
                     console.warn(join(__dirname, 'acceptor', 'storage', content.image.filename));
                     filePath.on('error', err => {
                         console.warn(err);
@@ -300,8 +298,7 @@ exports.Release = {
             }
             if (existingItem.id) {
                 fetch(`${backendUrl}/release/${existingItem.id}`, {
-                    method: 'DELETE',
-                    body: formData
+                    method: 'DELETE'
                 })
                     .then(res => console.warn(res))
                     .catch(err => console.warn(err));
@@ -393,8 +390,7 @@ exports.Article = {
             }
             if (existingItem.id) {
                 fetch(`${backendUrl}/article/${existingItem.id}`, {
-                    method: 'DELETE',
-                    body: formData
+                    method: 'DELETE'
                 })
                     .then(res => console.warn(res))
                     .catch(err => console.warn(err));
@@ -431,6 +427,18 @@ exports.Tag = {
             label: 'Статьи'
         }
     },
+    hooks: {
+        afterDelete: ({ existingItem }) => {
+            if (existingItem.id) {
+                fetch(`${backendUrl}/tag/${existingItem.id}`, {
+                    method: 'DELETE'
+                })
+                    .then(res => console.warn(res))
+                    .catch(err => console.warn(err));
+            }
+        }
+    },
+
     plugins: [atTracking({ format: 'YYYY-MM-DD' }), byTracking({ ref: 'People' })],
     adminConfig: {
         defaultPageSize: 20,
