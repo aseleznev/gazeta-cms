@@ -1,5 +1,5 @@
 const express = require('express');
-const { staticRoute, staticPath, acceptorUrl, port } = require('./config');
+const { staticRoute, port } = require('./config');
 const { keystone, apps } = require('./index.js');
 const { join } = require('path');
 

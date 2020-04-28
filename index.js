@@ -87,9 +87,6 @@ const authStrategy = keystone.createAuthStrategy({
 
 const adminApp = new AdminUIApp({
     enableDefaultRoute: true,
-    // adminPath: '/',
-    // apiPath: '/api',
-    // graphiqlPath: '/api',
     authStrategy,
     hooks: require.resolve('./branding'),
     pages: [
@@ -109,9 +106,6 @@ const adminApp = new AdminUIApp({
 });
 
 module.exports = {
-    // configureExpress: app => {
-    //     app.set('strict routing', true);
-    // },
     keystone,
     apps: [new GraphQLApp(), new StaticApp({ path: staticRoute, src: staticPath }), adminApp]
 };
