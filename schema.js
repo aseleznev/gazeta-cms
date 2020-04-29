@@ -335,7 +335,7 @@ exports.Article = {
         description: {
             type: Text,
             isRequired: true,
-            isUnique: true,
+            isMultiline: true,
             label: 'Описание'
         },
         image: {
