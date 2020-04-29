@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 const { createReadStream } = require('fs');
 const FormData = require('form-data');
 const parser = require('posthtml-parser');
+const decode = require('html-entities-decoder');
 
 const { File, Text, Relationship, Select, CalendarDay } = require('@keystonejs/fields');
 const { LocalFileAdapter } = require('@keystonejs/file-adapters');
@@ -132,7 +133,7 @@ async function mapContent(release) {
                             articleContent.push({
                                 type: 'paragraph',
                                 order,
-                                text: nodeContent,
+                                text: decode(nodeContent),
                                 id: article.id + order.toString()
                             });
                             order++;
@@ -158,7 +159,7 @@ async function mapContent(release) {
                                     articleContent.push({
                                         type: 'blockquote',
                                         order,
-                                        text: content,
+                                        text: decode(content),
                                         id: article.id + order.toString()
                                     });
                                     order++;
