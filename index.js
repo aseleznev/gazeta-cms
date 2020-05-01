@@ -87,7 +87,7 @@ const adminApp = new AdminUIApp({
     authStrategy,
     adminPath: '/admin',
     //hooks: [require.resolve('./admin/'), require.resolve('./branding/')]
-    //hooks: require.resolve('./branding/')
+    //hooks: require.resolve('./branding/'),
     pages: [
         {
             label: 'Газета',

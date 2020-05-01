@@ -18,7 +18,7 @@ const { staticRoute, staticPath, backendUrl, tinyMceBaseUrl, host } = require('.
 const fileAdapter = new LocalFileAdapter({
     src: `${staticPath}`,
     path: `${staticRoute}`,
-    getFilename: ({ id }) => `mceu_${id}`
+    getFilename: ({ id, originalFilename }) => `mceu_${id}.${originalFilename.split('.').pop()}`
 });
 
 const options = [

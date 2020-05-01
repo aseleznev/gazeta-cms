@@ -18,16 +18,14 @@
     "create-tables": "CREATE_TABLES=true keystone create-tables"
   },
   "dependencies": {
-    "@arch-ui/layout": "^0.2.13",
-    "@arch-ui/typography": "0.0.17",
-    "@keystonejs/adapter-knex": ">=9.0.2",
-    "@keystonejs/app-admin-ui": ">=5.9.5",
-    "@keystonejs/app-graphql": ">=5.1.5",
-    "@keystonejs/app-static": ">=5.1.2",
-    "@keystonejs/auth-password": ">=5.1.5",
-    "@keystonejs/fields": ">=9.0.0",
-    "@keystonejs/fields-wysiwyg-tinymce": ">=5.2.3",
-    "@keystonejs/keystone": ">=8.0.0",
+    "@keystonejs/adapter-knex": "^9.0.2",
+    "@keystonejs/app-admin-ui": "^5.12.0",
+    "@keystonejs/app-graphql": "^5.1.6",
+    "@keystonejs/app-static": "^5.1.2",
+    "@keystonejs/auth-password": "^5.1.6",
+    "@keystonejs/fields": "^9.0.5",
+    "@keystonejs/fields-wysiwyg-tinymce": "^5.2.6",
+    "@keystonejs/keystone": "^8.1.4",
     "cheerio": "^1.0.0-rc.3",
     "cors": "^2.8.5",
     "cross-env": "^7.0.0",
@@ -37,10 +35,7 @@
     "https-proxy-agent": "^5.0.0",
     "multer": "^1.4.2",
     "node-fetch": "^2.6.0",
-    "posthtml-parser": "^0.4.2",
-    "react": "^16.13.1",
-    "ts-node": "^8.8.2",
-    "typescript": "^3.8.3"
+    "posthtml-parser": "^0.4.2"
   },
   "devDependencies": {
     "@keystonejs/file-adapters": "^6.0.1",
