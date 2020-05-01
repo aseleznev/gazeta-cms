@@ -1,3 +1,6 @@
+const dev = process.env.NODE_ENV === 'development';
+
+const HttpsProxyAgent = require('https-proxy-agent');
 const { join } = require('path');
 const fetch = require('node-fetch');
 const { createReadStream } = require('fs');
@@ -14,7 +17,8 @@ const { staticRoute, staticPath, backendUrl, tinyMceBaseUrl, host } = require('.
 
 const fileAdapter = new LocalFileAdapter({
     src: `${staticPath}`,
-    path: `${staticRoute}`
+    path: `${staticRoute}`,
+    getFilename: ({ id }) => `mceu_${id}`
 });
 
 const options = [
@@ -128,6 +132,14 @@ async function mapContent(release) {
                                     }
                                 });
                                 order++;
+                            } else if (nodeContent.tag === 'strong' || nodeContent.tag === 'em') {
+                                articleContent.push({
+                                    type: nodeContent.tag === 'strong' ? 'paragraph-strong' : 'paragraph-italic',
+                                    order,
+                                    id: article.id + order.toString(),
+                                    text: decode(nodeContent.content[0])
+                                });
+                                order++;
                             }
                         } else {
                             articleContent.push({
@@ -178,21 +190,25 @@ async function mapContent(release) {
 
 async function publishRelease(release) {
     return new Promise((resolve, reject) => {
+        let agent = new HttpsProxyAgent('https://webproxytmn.adm.ggr.gazprom.ru:8080');
+
+        if (!dev) {
+            agent = null;
+        }
+
         const promises = [];
 
-        const formData = new FormData();
-        const readStream = createReadStream(join(__dirname, '..', 'gazeta-upload', release.image.filename));
-        formData.append('file', readStream);
+        if (release.image) {
+            const formData = new FormData();
+            const readStream = createReadStream(join(__dirname, '..', 'gazeta-upload', release.image.filename));
+            formData.append('file', readStream);
 
-        promises.push(
-            fetch(`${backendUrl}/image`, {
-                method: 'POST',
-                body: formData
-            })
-        );
+            promises.push(fetch(`${backendUrl}/image`, { agent, method: 'POST', body: formData }));
+        }
 
         promises.push(
             fetch(`${backendUrl}/release`, {
+                agent,
                 method: 'post',
                 body: JSON.stringify(release),
                 headers: { 'Content-Type': 'application/json' }
@@ -200,22 +216,20 @@ async function publishRelease(release) {
         );
 
         release.articles.forEach(article => {
-            console.warn('статья');
-            console.warn(article);
-            const formData = new FormData();
-            const readStream = createReadStream(join(__dirname, '..', 'gazeta-upload', article.image.filename));
-            formData.append('file', readStream);
-            promises.push(
-                fetch(`${backendUrl}/image`, {
-                    method: 'POST',
-                    body: formData
-                })
-            );
+            if (article.image) {
+                const formData = new FormData();
+                const readStream = createReadStream(join(__dirname, '..', 'gazeta-upload', article.image.filename));
+                formData.append('file', readStream);
+                promises.push(
+                    fetch(`${backendUrl}/image`, {
+                        agent,
+                        method: 'POST',
+                        body: formData
+                    })
+                );
+            }
             article.content.forEach(content => {
-                console.warn('есть контент!!!!!!!!');
-                console.warn(content);
                 if (content.type === 'image') {
-                    console.warn('есть картинка!!!!!!!!');
                     const formData = new FormData();
                     const filePath = createReadStream(join(__dirname, '..', 'gazeta-upload', content.image.filename));
                     console.warn(join(__dirname, 'acceptor', 'storage', content.image.filename));
@@ -226,6 +240,7 @@ async function publishRelease(release) {
                     formData.append('file', filePath);
                     promises.push(
                         fetch(`${backendUrl}/image`, {
+                            agent,
                             method: 'POST',
                             body: formData
                         })
@@ -248,7 +263,7 @@ exports.Release = {
     fields: {
         date: {
             type: CalendarDay,
-            //format: { locale: 'ru' },
+            format: { locale: 'ru' },
             yearRangeFrom: 2020,
             yearRangeTo: 2030,
             yearPickerType: 'auto',
@@ -317,8 +332,8 @@ exports.Release = {
 
 exports.Article = {
     // label: 'Статья',
-    // plural: 'Статьи',
-    // singular: 'Статья',
+    // plural: 'Articles',
+    // singular: 'Article',
     // itemQueryName: 'Article',
     // listQueryName: 'ArticleList',
     fields: {
@@ -369,8 +384,8 @@ exports.Article = {
             editorConfig: {
                 plugins: 'autoresize paste quickbars hr image',
                 block_formats: 'Блок внимания=blockquote',
-                toolbar: 'formatselect | quickimage image editimage imageoptions | selectall | undo redo | preview',
-                quickbars_selection_toolbar: 'blockquote | removeformat | image',
+                toolbar: 'formatselect | bold italic | quickimage image | selectall | undo redo | preview',
+                quickbars_selection_toolbar: 'bold italic | blockquote | removeformat | image',
                 statusbar: true,
                 elementpath: true,
                 height: 300,

@@ -8,11 +8,9 @@ const { StaticApp } = require('@keystonejs/app-static');
 const initialiseData = require('./initial-data');
 
 const { Release, Article, Tag } = require('./schema');
-//const { MongooseAdapter: Adapter } = require('@keystonejs/adapter-mongoose');
 const { staticRoute, staticPath, dbconnection } = require('./config');
 
 const PROJECT_NAME = `"Время открытий"`;
-//const adapterConfig = { mongoUri: 'mongodb://localhost/gazeta-cms' };
 const { KnexAdapter } = require('@keystonejs/adapter-knex');
 
 const adapterConfig = {
@@ -26,7 +24,6 @@ const adapterConfig = {
 
 const keystone = new Keystone({
     name: PROJECT_NAME,
-    //adapter: new Adapter(adapterConfig),
     adapter: new KnexAdapter(adapterConfig),
     onConnect: process.env.CREATE_TABLES !== 'true' && initialiseData
 });
@@ -86,9 +83,11 @@ const authStrategy = keystone.createAuthStrategy({
 });
 
 const adminApp = new AdminUIApp({
-    enableDefaultRoute: true,
+    enableDefaultRoute: false,
     authStrategy,
-    hooks: require.resolve('./branding'),
+    adminPath: '/admin',
+    //hooks: [require.resolve('./admin/'), require.resolve('./branding/')]
+    //hooks: require.resolve('./branding/')
     pages: [
         {
             label: 'Газета',
