@@ -1,6 +1,5 @@
-function GazpromLogo() {
-    return <img src="logo.png" alt="gazprom logo" />;
-}
+import Branding from './pages/branding';
+
 export default {
-    logo: () => <GazpromLogo />
+    logo: () => <Branding />
 };
