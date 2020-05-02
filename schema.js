@@ -190,11 +190,12 @@ async function mapContent(release) {
 
 async function publishRelease(release) {
     return new Promise((resolve, reject) => {
-        let agent = new HttpsProxyAgent('https://webproxytmn.adm.ggr.gazprom.ru:8080');
-
-        if (!dev) {
-            agent = null;
-        }
+        // let agent = new HttpsProxyAgent('https://webproxytmn.adm.ggr.gazprom.ru:8080');
+        //
+        // if (!dev) {
+        //     agent = null;
+        // }
+        const agent = null;
 
         const promises = [];
 
@@ -263,7 +264,7 @@ exports.Release = {
     fields: {
         date: {
             type: CalendarDay,
-            format: { locale: 'ru' },
+            //format: { locale: 'ru' },
             yearRangeFrom: 2020,
             yearRangeTo: 2030,
             yearPickerType: 'auto',
