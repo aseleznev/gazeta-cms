@@ -15,6 +15,13 @@ const { Wysiwyg } = require('@keystonejs/fields-wysiwyg-tinymce');
 
 const { staticRoute, staticPath, backendUrl, tinyMceBaseUrl, host } = require('./config');
 
+// let agent = new HttpsProxyAgent('https://webproxytmn.adm.ggr.gazprom.ru:8080');
+//
+// if (!dev) {
+//     agent = null;
+// }
+const agent = null;
+
 const fileAdapter = new LocalFileAdapter({
     src: `${staticPath}`,
     path: `${staticRoute}`,
@@ -81,8 +88,8 @@ const validateInput = async ({ existingItem, originalInput, actions }) => {
             throw 'Не удалось получить содержание статьи!';
         }
 
-        console.warn('---releaseData---');
-        console.warn(releaseData);
+        // console.warn('---releaseData---');
+        // console.warn(releaseData);
 
         publishRelease(releaseData)
             .then(() => console.warn('all ok'))
@@ -190,13 +197,6 @@ async function mapContent(release) {
 
 async function publishRelease(release) {
     return new Promise((resolve, reject) => {
-        // let agent = new HttpsProxyAgent('https://webproxytmn.adm.ggr.gazprom.ru:8080');
-        //
-        // if (!dev) {
-        //     agent = null;
-        // }
-        const agent = null;
-
         const promises = [];
 
         if (release.image) {
@@ -315,6 +315,7 @@ exports.Release = {
             }
             if (existingItem.id) {
                 fetch(`${backendUrl}/release/${existingItem.id}`, {
+                    agent,
                     method: 'DELETE'
                 })
                     .then(res => console.warn(res))
@@ -340,8 +341,8 @@ exports.Article = {
     fields: {
         date: {
             type: CalendarDay,
-            //format: 'DD.MM.YYYY',
-            //inputFormat: 'DD.MM.YYYY',
+            //format: 'DD/MM/YYYY',
+            //inputFormat: 'DD/MM/YYYY',
             yearRangeFrom: 2020,
             yearRangeTo: 2030,
             yearPickerType: 'auto',
@@ -407,6 +408,7 @@ exports.Article = {
             }
             if (existingItem.id) {
                 fetch(`${backendUrl}/article/${existingItem.id}`, {
+                    agent,
                     method: 'DELETE'
                 })
                     .then(res => console.warn(res))
@@ -448,6 +450,7 @@ exports.Tag = {
         afterDelete: ({ existingItem }) => {
             if (existingItem.id) {
                 fetch(`${backendUrl}/tag/${existingItem.id}`, {
+                    agent,
                     method: 'DELETE'
                 })
                     .then(res => console.warn(res))
