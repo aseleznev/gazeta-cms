@@ -26,6 +26,7 @@
     "@keystonejs/fields": "^9.0.5",
     "@keystonejs/fields-wysiwyg-tinymce": "^5.2.6",
     "@keystonejs/keystone": "^8.1.4",
+    "bcrypt": "^4.0.1",
     "cheerio": "^1.0.0-rc.3",
     "cors": "^2.8.5",
     "cross-env": "^7.0.0",

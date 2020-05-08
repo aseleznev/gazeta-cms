@@ -13,7 +13,7 @@ const { LocalFileAdapter } = require('@keystonejs/file-adapters');
 const { atTracking, byTracking } = require('@keystonejs/list-plugins');
 const { Wysiwyg } = require('@keystonejs/fields-wysiwyg-tinymce');
 
-const { staticRoute, staticPath, backendUrl, tinyMceBaseUrl, host } = require('./config');
+const { staticRoute, staticPath, backendUrl, tinyMceBaseUrl, host, apiKey } = require('./config');
 
 // let agent = new HttpsProxyAgent('https://webproxytmn.adm.ggr.gazprom.ru:8080');
 //
@@ -21,6 +21,8 @@ const { staticRoute, staticPath, backendUrl, tinyMceBaseUrl, host } = require('.
 //     agent = null;
 // }
 const agent = null;
+
+const bcrypt = require('bcrypt');
 
 const fileAdapter = new LocalFileAdapter({
     src: `${staticPath}`,
@@ -196,15 +198,23 @@ async function mapContent(release) {
 }
 
 async function publishRelease(release) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         const promises = [];
+        const hashedApiKey = await bcrypt.hash(apiKey, 10);
 
         if (release.image) {
             const formData = new FormData();
             const readStream = createReadStream(join(__dirname, '..', 'gazeta-upload', release.image.filename));
             formData.append('file', readStream);
 
-            promises.push(fetch(`${backendUrl}/image`, { agent, method: 'POST', body: formData }));
+            promises.push(
+                fetch(`${backendUrl}/image`, {
+                    agent,
+                    method: 'POST',
+                    body: formData,
+                    headers: { apiKey: hashedApiKey }
+                })
+            );
         }
 
         promises.push(
@@ -212,7 +222,7 @@ async function publishRelease(release) {
                 agent,
                 method: 'post',
                 body: JSON.stringify(release),
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json', apiKey: hashedApiKey }
             })
         );
 
@@ -225,7 +235,8 @@ async function publishRelease(release) {
                     fetch(`${backendUrl}/image`, {
                         agent,
                         method: 'POST',
-                        body: formData
+                        body: formData,
+                        headers: { apiKey: hashedApiKey }
                     })
                 );
             }
@@ -243,7 +254,8 @@ async function publishRelease(release) {
                         fetch(`${backendUrl}/image`, {
                             agent,
                             method: 'POST',
-                            body: formData
+                            body: formData,
+                            headers: { apiKey: hashedApiKey }
                         })
                     );
                 }
