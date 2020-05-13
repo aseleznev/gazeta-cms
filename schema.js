@@ -15,7 +15,7 @@ const { Wysiwyg } = require('@keystonejs/fields-wysiwyg-tinymce');
 
 const { staticRoute, staticPath, backendUrl, tinyMceBaseUrl, host, apiKey } = require('./config');
 
-// let agent = new HttpsProxyAgent('https://webproxytmn.adm.ggr.gazprom.ru:8080');
+//let agent = new HttpsProxyAgent({ host: 'localhost', port: 4000 });
 //
 // if (!dev) {
 //     agent = null;
