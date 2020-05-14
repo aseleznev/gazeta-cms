@@ -2,6 +2,7 @@ const dev = process.env.NODE_ENV === 'development';
 
 const HttpsProxyAgent = require('https-proxy-agent');
 const { join } = require('path');
+const fs = require('fs');
 const fetch = require('node-fetch');
 const { createReadStream } = require('fs');
 const FormData = require('form-data');
@@ -59,6 +60,7 @@ const validateInput = async ({ existingItem, originalInput, actions }) => {
                   description
                   order
                   content
+                  writer
                   image{
                     id
                     filename
@@ -112,6 +114,8 @@ const validateInput = async ({ existingItem, originalInput, actions }) => {
     }
 };
 
+function addServiceFields(release) {}
+
 function getFilenameFromSrc(src) {
     return src.replace(`${host}${staticRoute}/`, '');
 }
@@ -121,7 +125,15 @@ async function mapContent(release) {
         if (!release) {
             reject('false');
         }
+        if (release.image) {
+            release.image.originalFilename = release.image.filename;
+            release.image.filename = 'conv_' + release.image.filename;
+        }
         release.articles.forEach(article => {
+            if (article.image) {
+                article.image.originalFilename = article.image.filename;
+                article.image.filename = 'conv_' + article.image.filename;
+            }
             const pd = parser(article.content);
             const articleContent = [];
             let order = 1;
@@ -130,6 +142,7 @@ async function mapContent(release) {
                     node.content.forEach(nodeContent => {
                         if (nodeContent.hasOwnProperty('tag')) {
                             if (nodeContent.tag === 'img') {
+                                const originalFilename = getFilenameFromSrc(nodeContent.attrs.src);
                                 articleContent.push({
                                     type: 'image',
                                     order,
@@ -137,7 +150,8 @@ async function mapContent(release) {
                                     image: {
                                         id: article.id + order.toString() + 'i',
                                         alt: nodeContent.attrs.alt,
-                                        filename: getFilenameFromSrc(nodeContent.attrs.src)
+                                        originalFilename,
+                                        filename: 'conv_' + originalFilename
                                     }
                                 });
                                 order++;
@@ -165,6 +179,7 @@ async function mapContent(release) {
                         if (nodeContent.tag === 'p') {
                             nodeContent.content.forEach(content => {
                                 if (content.tag === 'img') {
+                                    const originalFilename = getFilenameFromSrc(content.attrs.src);
                                     articleContent.push({
                                         type: 'image',
                                         order,
@@ -172,7 +187,8 @@ async function mapContent(release) {
                                         image: {
                                             id: article.id + order.toString() + 'i',
                                             alt: content.attrs.alt,
-                                            filename: getFilenameFromSrc(content.attrs.src)
+                                            originalFilename,
+                                            filename: 'conv_' + originalFilename
                                         }
                                     });
                                     order++;
@@ -197,6 +213,28 @@ async function mapContent(release) {
     });
 }
 
+async function getResizedImage(originalFilename, filename) {
+    return new Promise((resolve, reject) => {
+        const qt = require('quickthumb');
+        const file = join(__dirname, '..', 'gazeta-upload', originalFilename);
+        const convFile = join(__dirname, '..', 'gazeta-upload', filename);
+        //поищем уже сконвертированный файл
+        fs.access(convFile, fs.constants.F_OK, err => {
+            if (err) {
+                qt.convert({ src: file, dst: convFile, width: 1000 }, (err, path) => {
+                    if (err) {
+                        console.warn(err);
+                        reject(err);
+                    }
+                    resolve(path);
+                });
+            } else {
+                resolve(convFile);
+            }
+        });
+    });
+}
+
 async function publishRelease(release) {
     return new Promise(async (resolve, reject) => {
         const promises = [];
@@ -204,32 +242,37 @@ async function publishRelease(release) {
 
         if (release.image) {
             const formData = new FormData();
-            const readStream = createReadStream(join(__dirname, '..', 'gazeta-upload', release.image.filename));
-            formData.append('file', readStream);
-
-            promises.push(
-                fetch(`${backendUrl}/image`, {
-                    agent,
-                    method: 'POST',
-                    body: formData,
-                    headers: { apiKey: hashedApiKey }
-                })
-            );
+            try {
+                const file = await getResizedImage(release.image.originalFilename, release.image.filename);
+                const readStream = createReadStream(file);
+                formData.append('file', readStream);
+                promises.push(
+                    fetch(`${backendUrl}/image`, {
+                        agent,
+                        method: 'POST',
+                        body: formData,
+                        headers: { apiKey: hashedApiKey }
+                    })
+                );
+            } catch (err) {
+                console.warn(err);
+            }
         }
 
         promises.push(
             fetch(`${backendUrl}/release`, {
                 agent,
-                method: 'post',
+                method: 'POST',
                 body: JSON.stringify(release),
                 headers: { 'Content-Type': 'application/json', apiKey: hashedApiKey }
             })
         );
 
-        release.articles.forEach(article => {
+        for (const article of release.articles) {
             if (article.image) {
                 const formData = new FormData();
-                const readStream = createReadStream(join(__dirname, '..', 'gazeta-upload', article.image.filename));
+                const file = await getResizedImage(article.image.originalFilename, article.image.filename);
+                const readStream = createReadStream(file);
                 formData.append('file', readStream);
                 promises.push(
                     fetch(`${backendUrl}/image`, {
@@ -240,16 +283,12 @@ async function publishRelease(release) {
                     })
                 );
             }
-            article.content.forEach(content => {
+            for (const content of article.content) {
                 if (content.type === 'image') {
                     const formData = new FormData();
-                    const filePath = createReadStream(join(__dirname, '..', 'gazeta-upload', content.image.filename));
-                    console.warn(join(__dirname, 'acceptor', 'storage', content.image.filename));
-                    filePath.on('error', err => {
-                        console.warn(err);
-                        reject(err);
-                    });
-                    formData.append('file', filePath);
+                    const file = await getResizedImage(content.image.originalFilename, content.image.filename);
+                    const readStream = createReadStream(file);
+                    formData.append('file', readStream);
                     promises.push(
                         fetch(`${backendUrl}/image`, {
                             agent,
@@ -259,8 +298,8 @@ async function publishRelease(release) {
                         })
                     );
                 }
-            });
-        });
+            }
+        }
 
         //Promise.allSettled(contentPromises).then(results => results.forEach(result => console.warn(result.status)));
         resolve(Promise.all(promises).then(results => results));
@@ -390,7 +429,7 @@ exports.Article = {
                 create: isAdmin
                 // update: isAdmin
             },
-            label: 'Автор'
+            label: 'Пользователь'
         },
         content: {
             label: 'Содержимое',
@@ -410,7 +449,8 @@ exports.Article = {
                 convert_urls: false,
                 base_url: tinyMceBaseUrl
             }
-        }
+        },
+        writer: { type: String, isRequired: false, isUnique: false, label: 'Автор' }
     },
     plugins: [atTracking({ format: 'YYYY-MM-DD' }), byTracking({ ref: 'People' })],
     hooks: {

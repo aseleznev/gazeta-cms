@@ -36,7 +36,8 @@
     "https-proxy-agent": "^5.0.0",
     "multer": "^1.4.2",
     "node-fetch": "^2.6.0",
-    "posthtml-parser": "^0.4.2"
+    "posthtml-parser": "^0.4.2",
+    "quickthumb": "0.0.12"
   },
   "devDependencies": {
     "@keystonejs/file-adapters": "^6.0.2",
