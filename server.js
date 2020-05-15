@@ -2,6 +2,7 @@ const express = require('express');
 const { staticRoute, port } = require('./config');
 const { keystone, apps } = require('./index.js');
 const { join } = require('path');
+const multer = require('multer');
 
 keystone
     .prepare({
@@ -11,7 +12,6 @@ keystone
     .then(async ({ middlewares }) => {
         await keystone.connect();
         const app = express();
-        const multer = require('multer');
         const storage = multer.diskStorage({
             destination: function(req, file, cb) {
                 cb(null, join(__dirname, '..', 'gazeta-upload'));

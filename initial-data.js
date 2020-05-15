@@ -1,7 +1,4 @@
-const crypto = require('crypto');
-
 module.exports = async keystone => {
-    // Count existing users
     const {
         data: {
             _allPeoplesMeta: { count }
