@@ -1,6 +1,8 @@
 const parser = require('posthtml-parser');
 const decode = require('html-entities-decoder');
 
+const { host, staticRoute } = require('./config');
+
 const formatImage = obj => {
     if (obj.image) {
         obj.image.originalFilename = obj.image.filename;

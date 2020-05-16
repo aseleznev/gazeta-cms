@@ -1,4 +1,4 @@
-const { host, staticRoute, backendUrl, apiKey } = require('./config');
+const { backendUrl, apiKey } = require('./config');
 
 const fs = require('fs');
 const { join } = require('path');
