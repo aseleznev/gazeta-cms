@@ -5,7 +5,9 @@ const { Wysiwyg } = require('@keystonejs/fields-wysiwyg-tinymce');
 
 const { staticRoute, staticPath, backendUrl, tinyMceBaseUrl, host, apiKey } = require('./config');
 
-const { getReleaseQuery, mapContent, publishRelease } = require('./helper.js');
+const { getReleaseQuery, publishRelease } = require('./helper.js');
+const { mapContent } = require('./content-analyse.js');
+
 const fetch = require('node-fetch');
 
 const HttpsProxyAgent = require('https-proxy-agent');
@@ -33,7 +35,9 @@ const validateInput = async ({ existingItem, originalInput, actions }) => {
 
         try {
             const releaseData = await mapContent(release);
+            //console.warn(releaseData);
             await publishRelease(releaseData);
+            console.warn(`release id ${releaseData.id} publised`);
         } catch (err) {
             console.warn(err);
             throw err;
@@ -53,11 +57,46 @@ const validateInput = async ({ existingItem, originalInput, actions }) => {
     }
 };
 
+const afterDelete = async ({ existingItem, context }) => {
+    if (existingItem.image) {
+        await fileAdapter.delete(existingItem.image);
+    }
+    if (existingItem.id) {
+        const queryString = context.req.body.query.toString();
+        let routeName = '';
+        if (queryString.includes('deleteTag')) {
+            routeName = 'tag';
+        } else if (queryString.includes('deleteArticle')) {
+            routeName = 'article';
+        } else if (queryString.includes('deleteRelease')) {
+            routeName = 'release';
+        }
+        if (routeName) {
+            const hashedApiKey = await bcrypt.hash(apiKey, 10);
+            fetch(`${backendUrl}/${routeName}/${existingItem.id}`, {
+                agent,
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', apiKey: hashedApiKey }
+            })
+                .then(res => console.warn(res))
+                .catch(err => console.warn(err));
+        }
+    }
+};
+
+const beforeChange = async ({ existingItem }) => {
+    if (existingItem && existingItem.file) {
+        await fileAdapter.delete(existingItem.file);
+    }
+};
+
 const options = [
     { value: 'draft', label: 'Проект' },
     { value: 'published', label: 'Опубликован' },
     { value: 'archive', label: 'Архив' }
 ];
+
+const userIsAdmin = ({ authentication: { item: user } }) => Boolean(user && user.isAdmin);
 
 exports.Release = {
     // label: 'Выпуск',
@@ -68,7 +107,7 @@ exports.Release = {
     fields: {
         date: {
             type: CalendarDay,
-            //format: { locale: 'ru' },
+            format: 'dd.MM.yyyy',
             yearRangeFrom: 2020,
             yearRangeTo: 2030,
             yearPickerType: 'auto',
@@ -96,11 +135,7 @@ exports.Release = {
             type: File,
             adapter: fileAdapter,
             hooks: {
-                beforeChange: async ({ existingItem }) => {
-                    if (existingItem && existingItem.file) {
-                        await fileAdapter.delete(existingItem.file);
-                    }
-                }
+                beforeChange
             },
             label: 'Изображение для анонса'
         },
@@ -113,21 +148,7 @@ exports.Release = {
         }
     },
     hooks: {
-        afterDelete: async ({ existingItem }) => {
-            if (existingItem.image) {
-                await fileAdapter.delete(existingItem.image);
-            }
-            if (existingItem.id) {
-                const hashedApiKey = await bcrypt.hash(apiKey, 10);
-                fetch(`${backendUrl}/release/${existingItem.id}`, {
-                    agent,
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', apiKey: hashedApiKey }
-                })
-                    .then(res => console.warn(res))
-                    .catch(err => console.warn(err));
-            }
-        }
+        afterDelete
     },
     plugins: [atTracking({ format: 'YYYY-MM-DD' }), byTracking({ ref: 'People' })],
     adminConfig: {
@@ -147,7 +168,7 @@ exports.Article = {
     fields: {
         date: {
             type: CalendarDay,
-            //format: 'DD/MM/YYYY',
+            format: 'dd.MM.yyyy',
             //inputFormat: 'DD/MM/YYYY',
             yearRangeFrom: 2020,
             yearRangeTo: 2030,
@@ -166,11 +187,7 @@ exports.Article = {
             type: File,
             adapter: fileAdapter,
             hooks: {
-                beforeChange: async ({ existingItem }) => {
-                    if (existingItem && existingItem.file) {
-                        await fileAdapter.delete(existingItem.file);
-                    }
-                }
+                beforeChange
             },
             label: 'Изображение для анонса'
         },
@@ -208,21 +225,7 @@ exports.Article = {
     },
     plugins: [atTracking({ format: 'YYYY-MM-DD' }), byTracking({ ref: 'People' })],
     hooks: {
-        afterDelete: async ({ existingItem }) => {
-            if (existingItem.image) {
-                await fileAdapter.delete(existingItem.image);
-            }
-            if (existingItem.id) {
-                const hashedApiKey = await bcrypt.hash(apiKey, 10);
-                fetch(`${backendUrl}/article/${existingItem.id}`, {
-                    agent,
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', apiKey: hashedApiKey }
-                })
-                    .then(res => console.warn(res))
-                    .catch(err => console.warn(err));
-            }
-        }
+        afterDelete
     },
     adminConfig: {
         defaultPageSize: 20,
@@ -255,20 +258,8 @@ exports.Tag = {
         }
     },
     hooks: {
-        afterDelete: async ({ existingItem }) => {
-            if (existingItem.id) {
-                const hashedApiKey = await bcrypt.hash(apiKey, 10);
-                fetch(`${backendUrl}/tag/${existingItem.id}`, {
-                    agent,
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', apiKey: hashedApiKey }
-                })
-                    .then(res => console.warn(res))
-                    .catch(err => console.warn(err));
-            }
-        }
+        afterDelete
     },
-
     plugins: [atTracking({ format: 'YYYY-MM-DD' }), byTracking({ ref: 'People' })],
     adminConfig: {
         defaultPageSize: 20,
@@ -277,8 +268,6 @@ exports.Tag = {
     },
     labelResolver: item => item.title
 };
-
-const userIsAdmin = ({ authentication: { item: user } }) => Boolean(user && user.isAdmin);
 
 exports.People = {
     plural: 'Peoples',
