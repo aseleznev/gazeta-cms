@@ -27,7 +27,10 @@ const getFilenameFromSrc = src => {
 const pushImage = (articleContent, content, order, articleId) => {
     try {
         const originalFilename = getFilenameFromSrc(content.attrs.src);
-        const alt = decode(content.attrs.alt);
+        let alt = content.attrs.alt;
+        if (alt) {
+            alt = decode(content.attrs.alt);
+        }
         articleContent.push({
             type: 'image',
             order,
@@ -40,7 +43,7 @@ const pushImage = (articleContent, content, order, articleId) => {
             }
         });
     } catch (e) {
-        throw `Ошибка при разборе содержимого статьи с ид ${articleId}.`;
+        throw `Ошибка при разборе содержимого статьи с ид ${articleId}. ${e.message}`;
     }
 };
 
@@ -66,7 +69,7 @@ const pushText = (articleContent, content, tag, order, articleId) => {
             id: articleId + order.toString()
         });
     } catch (e) {
-        throw `Ошибка при разборе содержимого статьи с ид ${articleId}.`;
+        throw `Ошибка при разборе содержимого статьи с ид ${articleId}. ${e.message}`;
     }
 };
 
