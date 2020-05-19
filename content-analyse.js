@@ -27,13 +27,14 @@ const getFilenameFromSrc = src => {
 const pushImage = (articleContent, content, order, articleId) => {
     try {
         const originalFilename = getFilenameFromSrc(content.attrs.src);
+        const alt = decode(content.attrs.alt);
         articleContent.push({
             type: 'image',
             order,
             id: articleId + order.toString(),
             image: {
                 id: articleId + order.toString() + 'i',
-                alt: content.attrs.alt,
+                alt,
                 originalFilename,
                 filename: 'conv_' + originalFilename
             }
