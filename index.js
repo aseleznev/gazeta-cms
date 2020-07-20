@@ -7,7 +7,7 @@ const { StaticApp } = require('@keystonejs/app-static');
 const initialiseData = require('./initial-data');
 
 const { Release, Article, Tag, People } = require('./schema');
-const { staticRoute, staticPath, dbconnection } = require('./config');
+const { staticRoute, staticPath, dbconnection, cookieSecret } = require('./config');
 
 const PROJECT_NAME = `"Время открытий"`;
 const { KnexAdapter } = require('@keystonejs/adapter-knex');
@@ -24,6 +24,12 @@ const adapterConfig = {
 const keystone = new Keystone({
     name: PROJECT_NAME,
     adapter: new KnexAdapter(adapterConfig),
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // Defaults to true in production
+        maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+        sameSite: false
+    },
+    cookieSecret,
     onConnect: process.env.CREATE_TABLES !== 'true' && initialiseData
 });
 
