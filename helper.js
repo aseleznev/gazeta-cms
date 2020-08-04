@@ -7,8 +7,8 @@ const bcrypt = require('bcrypt');
 const qt = require('quickthumb');
 
 const HttpsProxyAgent = require('https-proxy-agent');
-//const agent = new HttpsProxyAgent({ host: 'localhost', port: 4000 });
-const agent = null;
+const agent = new HttpsProxyAgent({ host: 'webproxytmn.adm.ggr.gazprom.ru', port: 8080 });
+//const agent = null;
 
 const getImage = async (originalFilename, filename) => {
     return new Promise(resolve => {
