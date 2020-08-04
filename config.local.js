@@ -2,7 +2,7 @@ const dev = process.env.NODE_ENV === 'development';
 const prod = process.env.NODE_ENV === 'production';
 
 module.exports = {
-    port: process.env.PORT || 3000,
+    port: 3000,
     staticRoute: '/uploads', // The URL portion
     staticPath: '../gazeta-upload', // The local path on disk
     distDir: 'dist',
