@@ -5,6 +5,7 @@ const { join } = require('path');
 const FormData = require('form-data');
 const bcrypt = require('bcrypt');
 const qt = require('quickthumb');
+const fetch = require('node-fetch');
 
 const HttpsProxyAgent = require('https-proxy-agent');
 const agent = new HttpsProxyAgent({ host: 'webproxytmn.adm.ggr.gazprom.ru', port: 8080 });
@@ -12,8 +13,8 @@ const agent = new HttpsProxyAgent({ host: 'webproxytmn.adm.ggr.gazprom.ru', port
 
 const getImage = async (originalFilename, filename) => {
     return new Promise(resolve => {
-        const file = join(__dirname, '..', 'gazeta-upload', originalFilename);
-        const convertedFile = join(__dirname, '..', 'gazeta-upload', filename);
+        const file = join(__dirname, 'gazeta-upload', originalFilename);
+        const convertedFile = join(__dirname, 'gazeta-upload', filename);
         //поищем уже сконвертированный файл
         fs.access(convertedFile, fs.constants.F_OK, err => {
             if (err) {
