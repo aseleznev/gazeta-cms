@@ -1,8 +1,11 @@
 const express = require('express');
-const { staticRoute, port } = require('./config');
+const { staticRoute, port, ssl, key, cert } = require('./config');
 const { keystone, apps } = require('./index.js');
 const { join } = require('path');
 const multer = require('multer');
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
 
 keystone
     .prepare({
@@ -14,7 +17,7 @@ keystone
         const app = express();
         const storage = multer.diskStorage({
             destination: function(req, file, cb) {
-                cb(null, join(__dirname, '..', 'gazeta-upload'));
+                cb(null, join(__dirname, 'gazeta-upload'));
             },
             filename: function(req, file, cb) {
                 cb(null, file.originalname);
@@ -30,5 +33,20 @@ keystone
         });
         app.use(express.json({ limit: '50mb' }));
         app.use(express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 }));
-        app.use(middlewares).listen(port);
+        app.use(middlewares);
+
+        if (ssl) {
+            const httpServer = http.createServer(app);
+            const httpsServer = https.createServer(
+                {
+                    cert: fs.readFileSync(cert),
+                    key: fs.readFileSync(key)
+                },
+                app
+            );
+            httpServer.listen(3000);
+            httpsServer.listen(443);
+        } else {
+            app.listen(port);
+        }
     });
