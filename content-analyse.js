@@ -6,7 +6,6 @@ const { host, staticRoute } = require('./config');
 const formatImage = obj => {
     if (obj.image) {
         obj.image.originalFilename = obj.image.filename;
-        obj.image.filename = 'conv_' + obj.image.filename;
         return obj.image;
     }
     return null;
@@ -39,7 +38,7 @@ const pushImage = (articleContent, content, order, articleId) => {
                 id: articleId + order.toString() + 'i',
                 alt,
                 originalFilename,
-                filename: 'conv_' + originalFilename
+                filename: originalFilename
             }
         });
     } catch (e) {
