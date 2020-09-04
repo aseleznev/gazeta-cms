@@ -4,9 +4,9 @@ const prod = process.env.NODE_ENV === 'production';
 module.exports = {
     port: process.env.PORT || 3000,
     staticRoute: '/uploads', // The URL portion
-    staticPath: 'gazeta-upload', // The local path on disk
+    staticPath: '../gazeta-upload', // The local path on disk
     distDir: 'dist',
-    host: prod ? '//gazeta.gn.com.ru' : dev ? '//newspaper-dev.gp-ggr.ru' : '//localhost:3000',
+    host: prod ? '//gazeta.adm.ggr.gazprom.ru' : dev ? '//newspaper-dev.gp-ggr.ru' : '//localhost:3000',
     backendUrl: prod
         ? 'https://gazeta.gn.com.ru/api'
         : dev

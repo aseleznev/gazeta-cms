@@ -15,8 +15,8 @@
     "localold": "DISABLE_LOGGING=true keystone dev",
     "build": "cross-env NODE_ENV=production keystone build",
     "start": "cross-env NODE_ENV=production keystone start",
-    "prestart:prod": "cross-env NODE_ENV=production keystone build",
-    "start:prod": "cross-env NODE_ENV=production PORT=443 node server.js",
+    "_prestart:prod": "cross-env NODE_ENV=production keystone build",
+    "start:prod": "cross-env NODE_ENV=production DISABLE_LOGGING=true TLS_REJECT_UNAUTHORIZED=0 PORT=443 node server.js",
     "create-tables": "CREATE_TABLES=true keystone create-tables"
   },
   "dependencies": {

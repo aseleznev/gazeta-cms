@@ -27,8 +27,8 @@ keystone
         const upload = multer({ storage });
 
         app.post('/admin/image-upload', upload.single('file'), (req, res) => {
-            console.warn(req.file);
-            console.warn(req.body);
+            //console.warn(req.file);
+            //console.warn(req.body);
             res.send({ location: `//${req.headers.host}${staticRoute}/${req.file.originalname}` });
         });
         app.use(express.json({ limit: '50mb' }));
