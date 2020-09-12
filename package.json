@@ -37,7 +37,7 @@
     "html-entities-decoder": "^1.0.0",
     "https-proxy-agent": "^5.0.0",
     "multer": "^1.4.2",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "posthtml-parser": "^0.4.2",
     "quickthumb": "0.0.12"
   },
